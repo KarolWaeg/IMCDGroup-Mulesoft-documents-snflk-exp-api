@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+	<global-property doc:name="Global Property" doc:id="c3aaea17-72bb-4660-b60b-a00034d5ccfe" name="env" value="local" />
+	<configuration-properties doc:name="Configuration properties" doc:id="e67fa55a-e236-4eae-a94a-2ca66c98e97b" file="default.properties" />
+	<configuration-properties doc:name="Configuration properties" doc:id="d9b4542a-2247-4dc1-ad6b-758658073672" file="${env}.properties" />
+	<http:request-config
+	name="common-rpa-sys-api_http_configuration"
+	doc:name="HTTP Request configuration"
+	doc:id="b2db63ec-a66c-4bc8-adf5-ff6c85c78e82"
+	responseTimeout="${defaultResponseTimeout}"
+	basePath="${common-rpa-sys-api.basePath}" followRedirects="false">
+		<http:request-connection host="${mule.dlb.int.host}" port="${mule.dlb.int.port}" protocol="${mule.dlb.int.protocol}">
+			<reconnection >
+				<reconnect-forever frequency="10000" blocking="false" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="source" value="documents-snflk-exp-api" />
+			<http:default-header key="client_id" value="${mule.cloudhub.clientId}" />
+			<http:default-header key="client_secret" value="${mule.cloudhub.clientSecret}" />
+			<http:default-header key="x-correlation-id" value="#[vars.correlationId default correlationId]" />
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config
+	name="documents-rpa-proc-api_http_configuration"
+	doc:name="HTTP Request configuration"
+	doc:id="cb7cc65f-9965-4e27-87c1-afb34a199733"
+	responseTimeout="${defaultResponseTimeout}"
+	basePath="${documents-rpa-proc-api.basePath}" followRedirects="false">
+		<http:request-connection host="${mule.dlb.int.host}" port="${mule.dlb.int.port}" protocol="${mule.dlb.int.protocol}">
+			<reconnection >
+				<reconnect-forever frequency="10000" blocking="false" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="source" value="documents-snflk-exp-api" />
+			<http:default-header key="client_id" value="${mule.cloudhub.clientId}" />
+			<http:default-header key="client_secret" value="${mule.cloudhub.clientSecret}" />
+			<http:default-header key="x-correlation-id" value="#[vars.correlationId default correlationId]" />
+		</http:default-headers>
+	</http:request-config>
+	    <db:config name="SnowFlake_Database_Config" doc:name="Database Config" doc:id="79bcacb9-fe78-45db-8c72-510667b280d1">
+        <db:generic-connection url="jdbc:snowflake://${snowflake.baseUrl}/?db=${snowflake.db}&amp;warehouse=${snowflake.warehouse}&amp;schema=${snowflake.schema}&amp;queryTimeout=${defaultResponseTimeout}" driverClassName="net.snowflake.client.jdbc.SnowflakeDriver" user="${snowflake.user}" password="${snowflake.password}" />
+    </db:config>
+	<import doc:name="Import common-logging" file="common-logging.xml" />
+	<import doc:name="Import dictionaryUtilities" file="dictionaryUtilities.xml" />
+</mule>

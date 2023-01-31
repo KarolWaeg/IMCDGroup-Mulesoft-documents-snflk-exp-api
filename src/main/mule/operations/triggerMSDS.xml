@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="triggerMSDS" doc:id="b75a269e-e630-4ceb-b9bc-089f3870ca58" >
+		<ee:transform doc:name="vars: documentType, documentTypeGroup, processType" doc:id="ebba87b0-59f9-4c79-823a-d75c91e2d208" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="documentType" ><![CDATA[%dw 2.0
+output application/java
+---
+"MSDS"]]></ee:set-variable>
+				<ee:set-variable variableName="processType" ><![CDATA[%dw 2.0
+output application/java
+---
+"DOC_PRODUCTS"]]></ee:set-variable>
+				<ee:set-variable variableName="documentTypeGroup" ><![CDATA[%dw 2.0
+output application/java
+---
+"DMS - Product"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="common-static-data-sys-api::kv_rpa_process_config" doc:id="3a89c0bf-5937-4e5c-935b-999ee0b10708" name="common-static-data-sys-api::kv_rpa_process_config" target="processConfig" targetValue="#[output application/java --- payload]"/>
+		<ee:transform doc:name="vars: principals" doc:id="5827aaad-649b-485b-9c5d-876192bbff5d" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="principals" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.processConfig.*PRINCIPAL_ID
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:is-not-empty-collection doc:name="Is not empty collection" doc:id="4f7503b8-d6c3-4989-be34-3f51fa0ad071" values="#[vars.principals]" message='"No pricnipals configured"'/>
+		<flow-ref doc:name="snflk-sys::getMSDS" doc:id="dcd7498e-b6ad-4ff9-9e3a-f1e961aa153d" name="snflk-sys::getMSDS" target="missingMSDSList"/>
+		<ee:transform doc:name="vars: missingMSDSList, createTimestampAfter" doc:id="0248f21e-06e6-433a-a8e0-4b6e1b103d74">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="missingMSDSList" ><![CDATA[output application/json
+---
+vars.missingMSDSList map {
+	documentType: vars.documentType,
+	documentGroupType: vars.documentTypeGroup,
+	productCode: $.'PRODUCT_NUMBER',
+	languageCode: $.'LANGUAGE',
+	countryCode: $.'BRANCHPLANT_COUNTRY_CODE'
+}]]></ee:set-variable>
+				<ee:set-variable variableName="createTimestampAfter" ><![CDATA[output application/java
+import * from dw::core::Periods
+---
+(now()- (period({days:Mule::p('documents.msds.retryDelayDays') as Number } ))
+) as String {format:"yyyy-MM-dd'T'HH:mm:ssXXX"}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="common-rpa-sys-api::getExecutions" doc:id="0faa6ca5-fda4-40ef-8842-14c254b6bbd0" name="common-rpa-sys-api::getExecutions" targetValue="#[output application/java --- payload]" target="runExecutions" />
+		<ee:transform doc:name="filter" doc:id="b444f462-92fa-4879-8227-c78a2c5f4b0f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.missingMSDSList]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="4df85985-2077-4573-aceb-3901438a1391" collection="#[payload]">
+			<try doc:name="Try" doc:id="82ff28c8-a3ed-49d4-9a95-48bfe88d7b7a" >
+				<set-variable value="#[output application/json&#10;---&#10;{&#10;	documentType: vars.documentType,&#10;	documentGroupType: vars.documentGroupType,&#10;	productCode: payload.'PRODUCT_NUMBER',&#10;	languageCode: payload.'LANGUAGE',&#10;	countryCode: payload.'BRANCHPLANT_COUNTRY_CODE'&#10;}]" doc:name="supplierDocument" doc:id="76db88c9-00f5-42c4-a757-3294960fc07c" variableName="supplierDocument" />
+				<flow-ref doc:name="documents-rpa-proc-api::postSupplierDocuments" doc:id="1c54e15f-4f43-4396-956f-8b192fd9f128" name="documents-rpa-proc-api::postSupplierDocuments" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="2cf470a1-7004-4a9a-bee6-d417fc0c5455" >
+						<flow-ref doc:name="common-flows-logging-error" doc:id="d00438f1-9f51-4a67-a00d-77c668dd2a08" name="common-flows-logging-error"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+	</sub-flow>
+</mule>

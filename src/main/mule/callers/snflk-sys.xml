@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="snflk-sys::getMSDS"
+		doc:id="5ae063b5-007d-4a2b-9e1f-ff43cc1673b4">
+		<ee:transform
+			doc:name="vars: log.before-request, log.after-request"
+			doc:id="39343257-4d42-47b2-8e3b-ff35e540796d">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="log.before-request"><![CDATA["Getting missing MSDS documents for $((vars.principals joinBy ',') default 'UNKNOWN')" as String]]></ee:set-variable>
+				<ee:set-variable variableName="log.after-request"><![CDATA["Getting missing documents - Done" as String]]></ee:set-variable>
+			</ee:variables>
+
+		</ee:transform>
+		<flow-ref doc:name="before-request"
+			doc:id="cb968c34-2351-47b7-bdeb-b9cd4ae259d3"
+			name="common-flows-logging-before-request" />
+		<set-variable value="#[&quot;select distinct&#10;product_number,&#10;product_description,&#10;principal_erp_number,&#10;max(principal_item_number) as principal_item_number,                &#10;product_principal_name,&#10;date_of_upload,&#10;document_type,&#10;document_type_id,&#10;technical_version,&#10;document_version,&#10;document_language,&#10;document_status,&#10;--available_languages,                 &#10;country_language,&#10;BRANCHPLANT_COUNTRY_CODE ,&#10;BRANCHPLANT_PRIMARY_SDS_LANGUAGE_CODE,&#10;ifnull(country_language,'EN') as LANGUAGE &#10;from analytics.itembp&#10;where active_sales= TRUE&#10;and document_status IN ('Not Available','Expired')&#10;and AVAILABLE_LANGUAGES not like '%'||trim(country_language)||'%'&#10;AND principal_erp_number IN ($((vars.principals joinBy ',' default &quot;&quot;)))&#10;group by&#10;product_number,&#10;product_description,&#10;principal_erp_number,&#10;product_principal_name,&#10;date_of_upload,&#10;document_type,&#10;document_type_id,&#10;technical_version,&#10;document_version,&#10;document_language,&#10;document_status,&#10;country_language,&#10;BRANCHPLANT_COUNTRY_CODE ,&#10;BRANCHPLANT_PRIMARY_SDS_LANGUAGE_CODE,&#10;LANGUAGE &quot;]" doc:name="query" doc:id="5e0c33fc-0fb9-4b59-a0d3-65306356e524" variableName="query"/>
+		<db:select doc:name="Select missing MSDS" doc:id="59b42692-165b-4471-8999-61b68003bc87" config-ref="SnowFlake_Database_Config">
+			<db:sql ><![CDATA[#[vars.query]]]></db:sql>
+		</db:select>
+		<flow-ref doc:name="after-request"
+			doc:id="71a4dd1d-c1b9-4246-b07b-dbab85ff3e4f"
+			name="common-flows-logging-after-request" />
+	</sub-flow>
+</mule>

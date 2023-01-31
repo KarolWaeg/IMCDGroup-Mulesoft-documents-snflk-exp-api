@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="common-static-data-sys-api::kv_rpa_process_config" doc:id="2531b60a-4a88-421b-8d9a-22d857a76d76" >
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	is_active:true,&#10;	process_type: vars.processType,&#10;    document_type: vars.documentType,&#10;    document_type_group: vars.documentTypeGroup,&#10;}]' doc:name="queryParams" doc:id="d2501b8b-42cb-4257-9a35-25ff4d060afe" variableName="queryParams"/>
+		<ee:transform doc:name="Variables: log.before-request, log.after-request" doc:id="c9d017a7-d673-4ddb-bac5-ffea7d6817c4" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="log.before-request" ><![CDATA["Before Request get:/RPA_PROCESS_CONFIG from common-static-data-sys-api with : $(write(vars.queryParams,'application/json'))"]]></ee:set-variable>
+				<ee:set-variable variableName="log.after-request" ><![CDATA["After Request get:/RPA_PROCESS_CONFIG from common-static-data-sys-api"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="logging-before-request" doc:id="d22ed801-f66b-4b28-8df7-02c0792f5858" name="common-flows-logging-before-request"/>
+		<http:request method="GET" doc:name="getRpaProcess" doc:id="984545ba-7975-4c3f-b44b-2c0ac198bdd3" config-ref="common-static-data-sys-api_http_configuration" path="/RPA_PROCESS_CONFIG">
+			<http:query-params ><![CDATA[#[vars.queryParams]]]></http:query-params>
+		</http:request>
+		<flow-ref doc:name="logging-after-request" doc:id="194db553-e824-472b-bf99-a8d5dd1fe7c0" name="common-flows-logging-after-request"/>
+	</sub-flow>
+</mule>

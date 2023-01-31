@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="scheduledJob_triggerMSDS"
+		doc:id="e7e5026e-9ec1-4338-98b7-6f487a617bc5">
+		<scheduler doc:name="Scheduler"
+			doc:id="a2971308-fa53-48ec-bee2-9be1fe7c9b3d">
+			<scheduling-strategy>
+				<fixed-frequency timeUnit="HOURS" />
+			</scheduling-strategy>
+		</scheduler>
+		<set-variable
+			value="#[attributes.properties.'x-correlation-id' default correlationId]"
+			doc:name="correlationId"
+			doc:id="cd86f5e0-e13b-4c7f-8669-02c76671f3a8"
+			variableName="correlationId" />
+		<set-payload value='#[""]' doc:name="Set Payload" doc:id="f8d76ad0-1605-4ae0-84f1-1908b384c871" />
+		<flow-ref doc:name="logging-start"
+			doc:id="611472d1-3b9d-462f-91da-d7207e9284ec"
+			name="common-flows-logging-start" />
+		<flow-ref doc:name="triggerMSDS" doc:id="8132d957-457e-4455-93b1-fed548311190" name="triggerMSDS"/>
+		<flow-ref doc:name="logging-end"
+			doc:id="eabf5a22-0721-4b02-ab0f-aac89509eb8f"
+			name="common-flows-logging-end" />
+		<error-handler>
+
+			<on-error-propagate enableNotifications="false"
+				logException="false" doc:name="On Error Propagate"
+				doc:id="b2e262d6-4318-4053-a288-b265fcafb456">
+				<flow-ref doc:name="common-flows-logging-error"
+					doc:id="aeac9acb-10d1-4dd5-9583-ba682b3263a4"
+					name="common-flows-logging-error" />
+
+			</on-error-propagate>
+
+		</error-handler>
+
+
+	</flow>
+</mule>

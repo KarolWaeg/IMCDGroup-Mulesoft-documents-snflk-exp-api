@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="common-rpa-sys-api::getExecutions"
+		doc:id="2c69f17c-9ccb-4d03-9aad-60cf0d22185c">
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	"documentTypeGroup" : vars.documentTypeGroup,&#10;	"documentType" : vars.documentType,&#10;	"createTimestampAfter" : vars.createTimestampAfter,&#10;	"rpaProcessType" : vars.processType&#10;}]' doc:name="execQueryParams" doc:id="7d3344e5-4398-452c-919a-36f88465d2ba" variableName="execQueryParams"/>
+		<ee:transform
+			doc:name="vars: log.before-request, log.after-request, execQueryParams"
+			doc:id="e42adc87-6e06-4576-bd17-5056b955752f">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="log.before-request"><![CDATA["Getting existing executions for query params $(write(vars.execQueryParams default null,"application/json"))" as String]]></ee:set-variable>
+				<ee:set-variable variableName="log.after-request"><![CDATA["Getting executions - Done" as String]]></ee:set-variable>
+				
+			</ee:variables>
+
+		</ee:transform>
+		<flow-ref doc:name="before-request"
+			doc:id="2164d171-6013-4717-bf9c-65bcae99ffcc"
+			name="common-flows-logging-before-request" />
+		<http:request method="GET" doc:name="GET executions"
+			doc:id="b1cb0da4-a2bd-45e9-abda-7789330b4481"
+			config-ref="common-rpa-sys-api_http_configuration"
+			path='/executions'>
+			<http:body><![CDATA[#[null]]]></http:body>
+			<http:query-params ><![CDATA[#[vars.execQueryParams]]]></http:query-params>
+
+		</http:request>
+		<flow-ref doc:name="after-request"
+			doc:id="ff760298-7a47-4b0d-9ff2-e656ff8202e1"
+			name="common-flows-logging-after-request" />
+	</sub-flow>
+
+</mule>

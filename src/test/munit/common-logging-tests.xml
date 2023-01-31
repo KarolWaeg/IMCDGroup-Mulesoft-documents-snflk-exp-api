@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="common-logging-tests.xml" />
+<configuration-properties doc:name="Configuration properties" doc:id="248bfa6c-0367-41c1-9f80-fa9302176bad" file="munit.properties" />
+	<munit:test name="common-loggingTest" doc:id="0ded37ba-e3af-4b6f-89ba-333310b67a71" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="common-flows-logging-start" />
+			<munit:enable-flow-source value="common-flows-logging-before-request" />
+			<munit:enable-flow-source value="common-flows-logging-after-request" />
+			<munit:enable-flow-source value="common-flows-logging-flow" />
+			<munit:enable-flow-source value="common-flows-logging-end" />
+			<munit:enable-flow-source value="common-flows-logging-error" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="82fcd83a-71be-40b9-9a8e-254f18604f81" >
+				<munit:payload value="emptyPayload" />
+				<munit:variables >
+					<munit:variable key="log.start" value="TEST LOG START" />
+					<munit:variable key="log.end" value="TEST LOG END" />
+					<munit:variable key="log.flow" value="TEST LOG FLOW" />
+					<munit:variable key="log.after-request" value="TEST LOG AFTER REQUEST" />
+					<munit:variable key="log.before-request" value="TEST LOG BEFORE REQUEST" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="common-flows-logging-start" doc:id="a543c417-6181-459f-837a-139c9e5f80f5" name="common-flows-logging-start" />
+			<flow-ref doc:name="common-flows-logging-before-request" doc:id="641d1a67-0bfd-487b-943c-a1d0e9b3a8fe" name="common-flows-logging-before-request"/>
+			<flow-ref doc:name="common-flows-logging-after-request" doc:id="b8dcd46c-a36e-4489-846e-14ec8232123a" name="common-flows-logging-after-request"/>
+			<flow-ref doc:name="common-flows-logging-flow" doc:id="0dcda8be-295e-480a-acff-948e43295a5b" name="common-flows-logging-flow"/>
+			<flow-ref doc:name="common-flows-logging-error" doc:id="ce143d7a-9e4a-42a8-a0eb-1279627b14ea" name="common-flows-logging-error"/>
+			<flow-ref doc:name="common-flows-logging-end" doc:id="9ac4b584-d571-4cff-9e6a-0665a7c53c25" name="common-flows-logging-end"/>
+		</munit:execution>
+	</munit:test>
+</mule>
